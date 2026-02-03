@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import Modal from '../modals/Modal';
+import Modal from '../../componenets/modals/Modal';
 
 const AddTaskForm = ({ isOpen, onClose, onAdd }) => {
   const [text, setText] = useState('');
   const [time, setTime] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAdd({ id: Date.now(), text, time, done: false });
+    if (!text) return setError('Task description required');
+
+    onAdd({ text, time });
     setText('');
     setTime('');
     onClose();
+    setError('');
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <h2 className="text-lg font-bold mb-4">Add New Task</h2>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {error && <p className="text-red-500 mb-2">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-3 flex flex-col">
         <input
           type="text"
           placeholder="Task description"
@@ -33,7 +38,7 @@ const AddTaskForm = ({ isOpen, onClose, onAdd }) => {
         />
         <button
           type="submit"
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          className="bg-green-500 text-white px-8 py-2 rounded hover:bg-green-600 cursor-pointer ml-auto"
         >
           Add Task
         </button>
