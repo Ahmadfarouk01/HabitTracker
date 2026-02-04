@@ -4,6 +4,7 @@ import API from '../../axios/axios';
 const HabitCard = ({ habit, onHabitUpdated, onDelete, token }) => {
   const [open, setOpen] = useState(false);
   const [timeStatus, setTimeStatus] = useState('active'); // active, almost, time-passed
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Check completed today
   const completedToday = habit.completedDates?.some(date => {
@@ -33,7 +34,7 @@ const HabitCard = ({ habit, onHabitUpdated, onDelete, token }) => {
     setTimeStatus(computeStatus()); // initial
     const interval = setInterval(() => {
       setTimeStatus(computeStatus());
-    }, 60000); // every 1 min
+    }, 60000);
     return () => clearInterval(interval);
   }, [habit, completedToday]);
 
@@ -51,6 +52,7 @@ const HabitCard = ({ habit, onHabitUpdated, onDelete, token }) => {
   };
 
   const handleDelete = async () => {
+    setDeleteLoading(true);
     try {
       await API.delete(`/habits/${habit._id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -58,6 +60,8 @@ const HabitCard = ({ habit, onHabitUpdated, onDelete, token }) => {
       onDelete(habit._id);
     } catch (err) {
       console.error(err.response?.data?.message || err.message);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -112,9 +116,12 @@ const HabitCard = ({ habit, onHabitUpdated, onDelete, token }) => {
             <div className="absolute right-0 top-10 bg-white border rounded shadow-md w-28 z-10">
               <button
                 onClick={handleDelete}
-                className="block w-full text-left px-3 py-2 hover:bg-red-50 text-red-500"
+                disabled={deleteLoading}
+                className={`block w-full text-left px-3 py-2 text-red-500 ${
+                  deleteLoading ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-red-50'
+                }`}
               >
-                Delete
+                {deleteLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           )}
