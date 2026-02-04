@@ -3,21 +3,21 @@ import React, { useState, useEffect } from 'react';
 const TodoItem = ({ todo, onDelete, onToggle }) => {
   const [open, setOpen] = useState(false);
   const [timeStatus, setTimeStatus] = useState('active'); // 'active', 'almost', 'passed'
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (!todo.completed && todo.time) {
       const now = new Date();
-      // Assuming todo.time is "HH:mm"
       const [hours, minutes] = todo.time.split(':').map(Number);
       const todoDate = new Date();
       todoDate.setHours(hours, minutes, 0, 0);
 
-      const diffMinutes = (todoDate - now) / 60000; // difference in minutes
+      const diffMinutes = (todoDate - now) / 60000;
 
       if (diffMinutes <= 0) {
-        setTimeStatus('passed'); // past due
+        setTimeStatus('passed');
       } else if (diffMinutes <= 30) {
-        setTimeStatus('almost'); // less than 30 min left
+        setTimeStatus('almost');
       } else {
         setTimeStatus('active');
       }
@@ -27,6 +27,15 @@ const TodoItem = ({ todo, onDelete, onToggle }) => {
       setTimeStatus('active');
     }
   }, [todo]);
+
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      await onDelete(todo._id);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   return (
     <div className="flex justify-between items-center bg-white p-3 rounded shadow mb-2 relative">
@@ -67,10 +76,13 @@ const TodoItem = ({ todo, onDelete, onToggle }) => {
         {open && (
           <div className="absolute right-3 top-10 bg-white border rounded shadow-md w-28 z-10">
             <button
-              onClick={() => onDelete(todo._id)}
-              className="block w-full text-left px-3 py-2 hover:bg-red-50 text-red-500"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className={`block w-full text-left px-3 py-2 text-red-500 ${
+                deleteLoading ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-red-50'
+              }`}
             >
-              Delete
+              {deleteLoading ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         )}
